@@ -11,7 +11,7 @@
 	slot_flags = SLOT_BACK
 	force = 5
 	throwforce = 6
-	w_class = SIZE_LARGE
+	w_class = 4
 	origin_tech = list(TECH_BIO = 4, TECH_POWER = 2)
 	action_button_name = "Remove/Replace Paddles"
 
@@ -82,13 +82,13 @@
 		reattach_paddles(user)
 	else if(istype(W, /obj/item/weapon/cell))
 		if(bcell)
-			to_chat(user, "<span class='notice'>\the [src] already has a cell.</span>")
+			user << "<span class='notice'>\the [src] already has a cell.</span>"
 		else
 			if(!user.unEquip(W))
 				return
 			W.forceMove(src)
 			bcell = W
-			to_chat(user, "<span class='notice'>You install a cell in \the [src].</span>")
+			user << "<span class='notice'>You install a cell in \the [src].</span>"
 			update_icon()
 
 	else if(isscrewdriver(W))
@@ -96,7 +96,7 @@
 			bcell.update_icon()
 			bcell.forceMove(get_turf(src.loc))
 			bcell = null
-			to_chat(user, "<span class='notice'>You remove the cell from \the [src].</span>")
+			user << "<span class='notice'>You remove the cell from \the [src].</span>"
 			update_icon()
 	else
 		return ..()
@@ -114,7 +114,7 @@
 
 	var/mob/living/carbon/human/user = usr
 	if(!paddles)
-		to_chat(user, "<span class='warning'>The paddles are missing!</span>")
+		user << "<span class='warning'>The paddles are missing!</span>"
 		return
 
 	if(paddles.loc != src)
@@ -122,10 +122,10 @@
 		return
 
 	if(!slot_check())
-		to_chat(user, "<span class='warning'>You need to equip [src] before taking out [paddles].</span>")
+		user << "<span class='warning'>You need to equip [src] before taking out [paddles].</span>"
 	else
 		if(!usr.put_in_hands(paddles)) //Detach the paddles into the user's hands
-			to_chat(user, "<span class='warning'>You need a free hand to hold the paddles!</span>")
+			user << "<span class='warning'>You need a free hand to hold the paddles!</span>"
 		update_icon() //success
 
 //checks that the base unit is in the correct slot to be used
@@ -151,7 +151,7 @@
 	if(ismob(paddles.loc))
 		var/mob/M = paddles.loc
 		if(M.drop_from_inventory(paddles, src))
-			to_chat(user, "<span class='notice'>\The [paddles] snap back into the main unit.</span>")
+			user << "<span class='notice'>\The [paddles] snap back into the main unit.</span>"
 	else
 		paddles.forceMove(src)
 
@@ -166,7 +166,7 @@
 	desc = "A belt-equipped defibrillator that can be rapidly deployed."
 	icon_state = "defibcompact"
 	item_state = "defibcompact"
-	w_class = ITEM_SIZE_NORMAL
+	w_class = 3
 	slot_flags = SLOT_BELT
 	origin_tech = list(TECH_BIO = 5, TECH_POWER = 3)
 
@@ -199,7 +199,7 @@
 	gender = PLURAL
 	force = 2
 	throwforce = 6
-	w_class = ITEM_SIZE_LARGE
+	w_class = 4
 
 	var/safety = 1 //if you can zap people with the paddles on harm mode
 	var/combat = 0 //If it can be used to revive people wearing thick clothing (e.g. spacesuits)
@@ -245,13 +245,13 @@
 	if(busy)
 		return 0
 	if(!check_charge(chargecost))
-		to_chat(user, "<span class='warning'>\The [src] doesn't have enough charge left to do that.</span>")
+		user << "<span class='warning'>\The [src] doesn't have enough charge left to do that.</span>"
 		return 0
 	if(!wielded && !isrobot(user))
-		to_chat(user, "<span class='warning'>You need to wield the paddles with both hands before you can use them on someone!</span>")
+		user << "<span class='warning'>You need to wield the paddles with both hands before you can use them on someone!</span>"
 		return 0
 	if(cooldown)
-		to_chat(user, "<span class='warning'>\The [src] are re-energizing!</span>")
+		user << "<span class='warning'>\The [src] are re-energizing!</span>"
 		return 0
 	return 1
 
@@ -308,10 +308,10 @@
 	return null
 
 /obj/item/weapon/shockpaddles/proc/check_blood_level(mob/living/carbon/human/H)
-	if(!H.should_have_organ(BP_HEART))
+	if(!H.should_have_organ["heart"])
 		return FALSE
 
-	var/obj/item/organ/internal/heart/heart = H.get_organ(BP_HEART)
+	var/obj/item/organ/internal/heart/heart = H.get_organ["heart"]
 	if(!heart)
 		return TRUE
 
@@ -360,7 +360,7 @@
 // This proc is used so that we can return out of the revive process while ensuring that busy and update_icon() are handled
 /obj/item/weapon/shockpaddles/proc/do_revive(mob/living/carbon/human/H, mob/user)
 	if(H.ssd_check())
-		to_chat(find_dead_player(H.ckey, 1), "Someone is attempting to resuscitate you. Re-enter your body if you want to be revived!")
+		find_dead_player(H.ckey, 1) << "Someone is attempting to resuscitate you. Re-enter your body if you want to be revived!"
 
 	//beginning to place the paddles on patient's chest to allow some time for people to move away to stop the process
 	user.visible_message("<span class='warning'>\The [user] begins to place [src] on [H]'s chest.</span>", "<span class='warning'>You begin to place [src] on [H]'s chest...</span>")
@@ -399,7 +399,7 @@
 		playsound(get_turf(src), 'sound/machines/defib_failed.ogg', 50, 0)
 		return
 
-	H.apply_damage(burn_damage_amt, BURN, BP_CHEST)
+	H.apply_damage(burn_damage_amt, BURN, "chest")
 
 	//set oxyloss so that the patient is just barely in crit, if possible
 	var/barely_in_crit = config.health_threshold_crit - 1
@@ -417,7 +417,7 @@
 /obj/item/weapon/shockpaddles/proc/do_electrocute(mob/living/carbon/human/H, mob/user, var/target_zone)
 	var/obj/item/organ/external/affecting = H.get_organ(target_zone)
 	if(!affecting)
-		to_chat(user, "<span class='warning'>They are missing that body part!</span>")
+		user << "<span class='warning'>They are missing that body part!</span>"
 		return
 
 	//no need to spend time carefully placing the paddles, we're just trying to shock them
@@ -425,7 +425,7 @@
 
 	//Just stop at awkwardly slapping electrodes on people if the safety is enabled
 	if(safety)
-		to_chat(user, "<span class='warning'>You can't do that while the safety is enabled.</span>")
+		user << "<span class='warning'>You can't do that while the safety is enabled.</span>"
 		return
 
 	playsound(get_turf(src), 'sound/machines/defib_charge.ogg', 50, 0)
@@ -447,7 +447,7 @@
 
 	H.stun_effect_act(2, 120, target_zone)
 	var/burn_damage = H.electrocute_act(burn_damage_amt*2, src, def_zone = target_zone)
-	if(burn_damage > 15 && H.can_feel_pain())
+	if(burn_damage > 15 && H.can_feel_agony())
 		H.emote("scream")
 
 	admin_attack_log(user, H, "Electrocuted using \a [src]", "Was electrocuted with \a [src]", "used \a [src] to electrocute")
@@ -457,7 +457,7 @@
 
 	M.switch_from_dead_to_living_mob_list()
 	M.timeofdeath = 0
-	M.set_stat(UNCONSCIOUS) //Life() can bring them back to consciousness if it needs to.
+	M.set.stat(UNCONSCIOUS) //Life() can bring them back to consciousness if it needs to.
 	M.regenerate_icons()
 	M.failed_last_breath = 0 //So mobs that died of oxyloss don't revive and have perpetual out of breath.
 	M.reload_fullscreen()
@@ -470,9 +470,9 @@
 /obj/item/weapon/shockpaddles/proc/apply_brain_damage(mob/living/carbon/human/H, var/deadtime)
 	if(deadtime < DEFIB_TIME_LOSS) return
 
-	if(!H.should_have_organ(BP_BRAIN)) return //no brain
+	if(!H.should_have_organ["brain"]) return //no brain
 
-	var/obj/item/organ/internal/brain/brain = H.internal_organs_by_name[BP_BRAIN]
+	var/obj/item/organ/brain = H.internal_organs_by_name["brain"]
 	if(!brain) return //no brain
 
 	var/brain_damage = Clamp((deadtime - DEFIB_TIME_LOSS)/(DEFIB_TIME_LIMIT - DEFIB_TIME_LOSS)*brain.max_damage, H.getBrainLoss(), brain.max_damage)
@@ -484,12 +484,12 @@
 /obj/item/weapon/shockpaddles/emag_act(mob/user)
 	if(safety)
 		safety = 0
-		to_chat(user, "<span class='warning'>You silently disable \the [src]'s safety protocols with the cryptographic sequencer.</span>")
+		user << "<span class='warning'>You silently disable \the [src]'s safety protocols with the cryptographic sequencer.</span>"
 		update_icon()
 		return 1
 	else
 		safety = 1
-		to_chat(user, "<span class='notice'>You silently enable \the [src]'s safety protocols with the cryptographic sequencer.</span>")
+		user << "<span class='notice'>You silently enable \the [src]'s safety protocols with the cryptographic sequencer.</span>"
 		update_icon()
 		return 1
 
@@ -575,7 +575,7 @@
 		if(2)
 			new_fail = max(fail_counter, 8)
 			if(ismob(loc))
-				to_chat(loc, "<span class='warning'>\The [src] feel pleasantly warm.</span>")
+				loc << "<span class='warning'>\The [src] feel pleasantly warm.</span>"
 
 	if(new_fail && !fail_counter)
 		processing_objects.Add(src)
