@@ -73,7 +73,7 @@ var/global/list/image/ghost_sightless_images = list() //this is a list of images
 	..()
 
 /mob/observer/ghost/Destroy()
-	stop_following()
+	stop_orbit()
 	qdel(ghost_multitool)
 	ghost_multitool = null
 	return ..()
@@ -204,7 +204,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 		if(!found_rune)
 			usr << "<span class='warning'>The astral cord that ties your body and your spirit has been severed. You are likely to wander the realm beyond until your body is finally dead and thus reunited with you.</span>"
 			return
-	stop_following()
+	stop_orbit()
 	mind.current.ajourn=0
 	mind.current.key = key
 	mind.current.teleop = null
@@ -285,7 +285,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 		else
 			usr << "No area available."
 
-	stop_following()
+	stop_orbit()
 	usr.forceMove(pick(L))
 
 /mob/observer/ghost/verb/follow(input in getmobs())
@@ -299,17 +299,13 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 
 // This is the ghost's follow verb with an argument
 /mob/observer/ghost/proc/ManualFollow(var/atom/movable/target)
-	if(!target || target == following || target == src)
-		return
+	if(target && target != src)
+		if(orbiting && orbiting == target)
+			src.parallax.update()
+			return
 
-	stop_following()
-	following = target
-	moved_event.register(following, src, /atom/movable/proc/move_to_destination)
-	dir_set_event.register(following, src, /atom/proc/recursive_dir_set)
-	destroyed_event.register(following, src, /mob/observer/ghost/proc/stop_following)
-
-	src << "<span class='notice'>Now following \the [following]</span>"
-	move_to_destination(following, following.loc, following.loc)
+		src << "<span class='notice'>Now orbiting [target].</span>"
+		orbit(target,24,0)
 
 /mob/observer/ghost/proc/stop_following()
 	if(following)
@@ -348,7 +344,7 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 			var/turf/T = get_turf(M) //Turf of the destination mob
 
 			if(T && isturf(T))	//Make sure the turf exists, then move the source to that destination.
-				stop_following()
+				stop_orbit()
 				forceMove(T)
 			else
 				src << "This mob is not located in the game world."
@@ -375,9 +371,6 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 /mob/observer/ghost/add_memory()
 	set hidden = 1
 	src << "\red You are dead! You have no mind to store memory!"
-
-/mob/observer/ghost/Post_Incorpmove()
-	stop_following()
 
 /mob/observer/ghost/verb/analyze_air()
 	set name = "Analyze Air"
