@@ -73,6 +73,10 @@
 	if(!access_to_check) // No required_access, allow it.
 		return 1
 
+	// Admin override - allows operation of any computer as aghosted admin, as if you had any required access.
+	if(isghost(user) && check_rights(R_ADMIN, 0, user))
+		return 1
+
 	var/obj/item/weapon/card/id/I = user.GetIdCard()
 	if(!I)
 		if(loud)

@@ -28,6 +28,7 @@
 
 /obj/machinery/modular_computer/console/preset/engineering/install_programs()
 	cpu.hard_drive.store_file(new/datum/computer_file/program/power_monitor())
+	cpu.hard_drive.store_file(new/datum/computer_file/program/supermatter_monitor())
 	cpu.hard_drive.store_file(new/datum/computer_file/program/alarm_monitor())
 	cpu.hard_drive.store_file(new/datum/computer_file/program/atmos_control())
 	cpu.hard_drive.store_file(new/datum/computer_file/program/rcon_console())
