@@ -456,6 +456,9 @@
 	if(restrained()) //Check to see if we can do things
 		return 0
 
+	if(!Check_Dense_Object() && !mob_negates_gravity())
+		return 1
+
 	//Check to see if we slipped
 	if(prob(slip_chance(5)) && !buckled)
 		src << "<span class='warning'>You slipped!</span>"
@@ -486,6 +489,12 @@
 
 	return 0
 
+/mob/proc/mob_has_gravity(turf/T)
+	return has_gravity(src, T)
+
+/mob/proc/mob_negates_gravity()
+	return 0
+
 /mob/proc/Check_Shoegrip()
 	return 0
 
@@ -495,6 +504,9 @@
 	if(Check_Shoegrip())
 		return 0
 	return prob_slip
+
+/mob/proc/update_gravity()
+	return
 
 /client/verb/moveup()
 	set name = ".moveup"

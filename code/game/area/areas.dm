@@ -7,6 +7,7 @@
 	var/global/global_uid = 0
 	var/uid
 	var/tmp/camera_id = 0 // For automatic c_tag setting
+	var/grav_delivered_by = list() // For gravity generators
 
 /area/New()
 	icon_state = ""
@@ -326,6 +327,6 @@ var/list/mob/living/forced_ambiance_list = new
 	if(!T)
 		T = get_turf(AT)
 	var/area/A = get_area(T)
-	if(A && A.has_gravity())
+	if(A && A.has_gravity() && A.grav_delivered_by != list())
 		return 1
 	return 0
