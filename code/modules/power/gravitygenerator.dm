@@ -25,7 +25,7 @@ var/const/GRAV_NEEDS_WRENCH = 3
 	unacidable = 1
 	var/sprite_number = 0
 	var/affecting_radius = 150 // default affecting radius
-	var/list/affecting_aeras = list()
+	var/list/affecting_areas = list()
 
 /obj/machinery/gravity_generator/ex_act(severity, target)
 	if(severity == 1) // Very sturdy.
@@ -39,13 +39,13 @@ var/const/GRAV_NEEDS_WRENCH = 3
 	return "off"
 
 //multiZ locating
-/obj/machinery/gravity_generator/proc/locate_affecting_aeras()
+/obj/machinery/gravity_generator/proc/locate_affecting_areas()
 	var/turf/position = get_turf(src)
 	// Current level
 	for(var/area/A in range(position, affecting_radius))
 		if(istype(A,/area/space))
 			continue // No (de)gravitizing space.
-		affecting_aeras |= A
+		affecting_areas |= A
 
 	// Up
 	var/z_level = position.z
@@ -53,20 +53,20 @@ var/const/GRAV_NEEDS_WRENCH = 3
 		for(var/area/A in range(position, affecting_radius))
 			if(istype(A,/area/space))
 				continue
-			affecting_aeras |= A
+			affecting_areas |= A
 	// Down
 	z_level = position.z
 	while(HasBelow(z_level--))
 		for(var/area/A in range(position, affecting_radius))
 			if(istype(A,/area/space))
 				continue
-			affecting_aeras |= A
+			affecting_areas |= A
 
-	world << "list = [affecting_aeras]"
+	world << "list = [affecting_areas]"
 
 // This handle multiple generators, that provide gravity
 /obj/machinery/gravity_generator/proc/add_generator_bound()
-	for(var/area/A in affecting_aeras)
+	for(var/area/A in affecting_areas)
 		if(A.grav_delivered_by != list()) // if there is another generator, we just add it to list
 			if(src in A.grav_delivered_by)// if generator already in list
 				continue
@@ -75,9 +75,9 @@ var/const/GRAV_NEEDS_WRENCH = 3
 			A.grav_delivered_by = src
 			A.gravitychange(1)
 
-// Obviosly, removing gravgen from aeras
+// Obviosly, removing gravgen from areas
 /obj/machinery/gravity_generator/proc/remove_generator_bound()
-	for(var/area/A in affecting_aeras)
+	for(var/area/A in affecting_areas)
 		if(A.grav_delivered_by = list()) // empty check
 			continue
 		if(src in A.grav_delivered_by)   // if only ours generator in list
@@ -126,7 +126,7 @@ var/const/GRAV_NEEDS_WRENCH = 3
 
 /obj/machinery/gravity_generator/initialize()
 	..()
-	locate_affecting_aeras()
+	locate_affecting_areas()
 
 //
 // Generator which spawns with the station.
@@ -363,8 +363,12 @@ var/const/GRAV_NEEDS_WRENCH = 3
 	if(charging_state != POWER_IDLE)
 		if(charging_state == POWER_UP && charge_count >= 100)
 			set_state(1)
+			locate_affecting_areas()
+			add_generator_bound()
 		else if(charging_state == POWER_DOWN && charge_count <= 0)
 			set_state(0)
+			locate_affecting_areas()
+			remove_generator_bound()
 		else
 			if(charging_state == POWER_UP)
 				charge_count += 2
@@ -381,9 +385,6 @@ var/const/GRAV_NEEDS_WRENCH = 3
 
 			var/overlay_state = null
 			switch(charge_count)
-				if(0)
-					locate_affecting_aeras()
-					remove_generator_bound()
 				if(0 to 20)
 					overlay_state = null
 				if(21 to 40)
@@ -394,9 +395,6 @@ var/const/GRAV_NEEDS_WRENCH = 3
 					overlay_state = "activating"
 				if(81 to 100)
 					overlay_state = "activated"
-				if(100)
-					locate_affecting_aeras()
-					add_generator_bound()
 
 			if(overlay_state != current_overlay)
 				if(middle)
@@ -421,7 +419,7 @@ var/const/GRAV_NEEDS_WRENCH = 3
 /obj/machinery/gravity_generator/proc/update_mob_gravity()
 	for(var/mob/M in mob_list)
 		var/turf/their_turf = get_turf(M)
-		if(affecting_aeras.Find(their_turf.z))
+		if(affecting_areas.Find(their_turf.z))
 			M.update_gravity(M.mob_has_gravity())
 
 // Misc
