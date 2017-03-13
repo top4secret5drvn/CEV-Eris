@@ -31,8 +31,8 @@
 
 /obj/item/weapon/defibrillator/Destroy()
 	. = ..()
-	qdel_null(paddles)
-	qdel_null(bcell)
+	qdel(paddles)
+	qdel(bcell)
 
 /obj/item/weapon/defibrillator/loaded //starts with highcap cell
 	bcell = /obj/item/weapon/cell/high
@@ -224,9 +224,9 @@
 			make_announcement("beeps, \"Unit is re-energized.\"", "notice")
 			playsound(src, 'sound/machines/defib_ready.ogg', 50, 0)
 
-/obj/item/weapon/shockpaddles/update_twohanding()
+/obj/item/weapon/shockpaddles/update_held_icon()
 	var/mob/living/M = loc
-	if(istype(M) && is_held_twohanded(M))
+	if(istype(M) && wielded_item_state(M)) //TODO: Fix this shit
 		wielded = 1
 		name = "[initial(name)] (wielded)"
 	else
@@ -308,17 +308,17 @@
 	return null
 
 /obj/item/weapon/shockpaddles/proc/check_blood_level(mob/living/carbon/human/H)
-	if(!H.should_have_organ["heart"])
-		return FALSE
+    if(!H.species.has_organ["heart"])
+        return FALSE
 
-	var/obj/item/organ/internal/heart/heart = H.get_organ["heart"]
-	if(!heart)
-		return TRUE
+    var/obj/item/organ/heart/heart = H.internal_organs_by_name["heart"]
+    if(!heart)
+        return TRUE
 
-	if(heart.get_effective_blood_volume() < BLOOD_VOLUME_SURVIVE)
-		return TRUE
+    if(heart.get_effective_blood_volume() < BLOOD_VOLUME_SURVIVE) //TODO: Fix this shit too
+        return TRUE
 
-	return FALSE
+    return FALSE
 
 /obj/item/weapon/shockpaddles/proc/check_charge(var/charge_amt)
 	return 0
@@ -446,21 +446,21 @@
 	set_cooldown(cooldowntime)
 
 	H.stun_effect_act(2, 120, target_zone)
-	var/burn_damage = H.electrocute_act(burn_damage_amt*2, src, def_zone = target_zone)
-	if(burn_damage > 15 && H.can_feel_agony())
-		H.emote("scream")
+	H.electrocute_act(burn_damage_amt*2, src, def_zone = target_zone)
+	H.emote("scream")
 
 	admin_attack_log(user, H, "Electrocuted using \a [src]", "Was electrocuted with \a [src]", "used \a [src] to electrocute")
 
 /obj/item/weapon/shockpaddles/proc/make_alive(mob/living/carbon/human/M) //This revives the mob
 	var/deadtime = world.time - M.timeofdeath
 
-	M.switch_from_dead_to_living_mob_list()
 	M.timeofdeath = 0
-	M.set.stat(UNCONSCIOUS) //Life() can bring them back to consciousness if it needs to.
+	M.stat = UNCONSCIOUS //Life() can bring them back to consciousness if it needs to.
+	dead_mob_list -= M
+	living_mob_list |= M
 	M.regenerate_icons()
 	M.failed_last_breath = 0 //So mobs that died of oxyloss don't revive and have perpetual out of breath.
-	M.reload_fullscreen()
+	M.blinded = 0
 
 	M.emote("gasp")
 	M.Weaken(rand(10,25))
@@ -470,7 +470,7 @@
 /obj/item/weapon/shockpaddles/proc/apply_brain_damage(mob/living/carbon/human/H, var/deadtime)
 	if(deadtime < DEFIB_TIME_LOSS) return
 
-	if(!H.should_have_organ["brain"]) return //no brain
+	if(!H.species.has_organ["brain"]) return //no brain
 
 	var/obj/item/organ/brain = H.internal_organs_by_name["brain"]
 	if(!brain) return //no brain
@@ -555,11 +555,11 @@
 /obj/item/weapon/shockpaddles/standalone/check_charge(var/charge_amt)
 	return 1
 
-/obj/item/weapon/shockpaddles/standalone/checked_use(var/charge_amt)
+/obj/item/weapon/shockpaddles/standalone/checked_use(var/charge_amt) //TODO: Fix this shit too
 	radiation_repository.radiate(src, charge_amt/12) //just a little bit of radiation. It's the price you pay for being powered by magic I guess
 	return 1
 
-/obj/item/weapon/shockpaddles/standalone/process()
+/obj/item/weapon/shockpaddles/standalone/process() //TODO: Fix this shit too
 	if(fail_counter > 0)
 		radiation_repository.radiate(src, fail_counter--)
 	else
