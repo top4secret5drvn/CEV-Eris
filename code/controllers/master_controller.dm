@@ -36,6 +36,8 @@ datum/controller/game_controller/proc/setup()
 	setup_objects()
 	setupgenetics()
 	SetupXenoarch()
+	global_minimap.initialize()
+
 
 datum/controller/game_controller/proc/setup_objects()
 	admin_notice("<span class='danger'>Initializing objects</span>", R_DEBUG)

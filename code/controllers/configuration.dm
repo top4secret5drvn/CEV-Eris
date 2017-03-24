@@ -215,6 +215,7 @@ var/list/gamemode_cache = list()
 	var/list/language_prefixes = list(",","#","-")//Default language prefixes
 
 	var/ghosts_can_possess_animals = 0
+	var/generate_minimaps = 1
 
 /datum/configuration/New()
 	var/list/L = typesof(/datum/game_mode) - /datum/game_mode
